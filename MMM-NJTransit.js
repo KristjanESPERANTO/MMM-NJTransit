@@ -1,9 +1,7 @@
-/* A MagicMirror module to show bus, luas and rail arrival times.
+/* A MagicMirror² module to show bus, luas and rail arrival times.
  * Copyright (C) 2018 Dmitry Studynskyi
  * License: GNU General Public License */
 
-/* eslint-disable fp/no-mutating-methods,no-undef,guard-for-in,no-restricted-syntax */
-// eslint-disable-next-line no-undef
 Module.register("MMM-NJTransit", {
 
     defaults: {
@@ -18,27 +16,27 @@ Module.register("MMM-NJTransit", {
         displaySymbol: true,
         fade: true,
         fadePoint: 0.25,
-        fetchInterval: 60000,
+        fetchInterval: 60 * 1000,
         maximumEntries: 10,
         maximumNumberOfMinutes: 60,
         routes: [],
         stops: []
     },
 
-    getStyles () {
+    getStyles() {
         return ["default.css", "font-awesome.css"];
     },
 
-    getScripts () {
+    getScripts() {
         return [];
     },
 
-    getTranslations () {
+    getTranslations() {
         return false;
     },
 
     /* initialize */
-    start () {
+    start() {
         Log.log(`Starting module: ${this.name}`);
 
         for (const s in this.config.stops) {
@@ -66,7 +64,7 @@ Module.register("MMM-NJTransit", {
     },
 
     /* handle notifications */
-    socketNotificationReceived (notification, payload) {
+    socketNotificationReceived(notification, payload) {
         if (notification === "NJT_EVENTS") {
             if (this.hasStopId(payload.stopId)) {
                 this.stopData[payload.stopId] = payload.events;
@@ -86,7 +84,7 @@ Module.register("MMM-NJTransit", {
     },
 
     /* build the HTML to render */
-    getDom () {
+    getDom() {
         const events = this.createEventList();
         // console.log(events);
         const wrapper = document.createElement("table");
@@ -175,7 +173,7 @@ Module.register("MMM-NJTransit", {
      *
      * return bool - The config has this stop ID
      */
-    hasStopId (stopId) {
+    hasStopId(stopId) {
         for (const s in this.config.stops) {
             const stop = this.config.stops[s];
             if (stop.id === stopId) {
@@ -190,7 +188,7 @@ Module.register("MMM-NJTransit", {
      *
      * return array - Array with events.
      */
-    createEventList () {
+    createEventList() {
         const events = [];
         for (const s in this.stopData) {
             const stop = this.stopData[s];
@@ -208,7 +206,7 @@ Module.register("MMM-NJTransit", {
      *
      * argument stopConfig object - Configuration for the stop to add.
      */
-    addStop (stopConfig) {
+    addStop(stopConfig) {
         Log.log(`NJ Transit adding stop id: ${stopConfig.id}`);
         // console.log("addStop() " + stopConfig.id);
         this.sendSocketNotification("ADD_NJT_STOP", {
@@ -216,7 +214,6 @@ Module.register("MMM-NJTransit", {
             routes: stopConfig.routes || this.config.routes,
             destinations: stopConfig.destinations || this.config.destinations,
             maximumEntries: stopConfig.maximumEntries || this.config.maximumEntries,
-            // eslint-disable-next-line max-len
             maximumNumberOfMinutes: stopConfig.maximumNumberOfMinutes || this.config.maximumNumberOfMinutes,
             fetchInterval: stopConfig.fetchInterval || this.config.fetchInterval
         });
@@ -242,7 +239,7 @@ Module.register("MMM-NJTransit", {
      *
      * return string - The symbol for the stop.
      */
-    symbolForStop (stopId) {
+    symbolForStop(stopId) {
         return this.getStopProperty(stopId, "symbol", this.defaultSymbolForStop(stopId));
     },
 
@@ -252,7 +249,7 @@ Module.register("MMM-NJTransit", {
      *
      * return string - The custom label if present, or the stop ID.
      */
-    nameForStop (stopId) {
+    nameForStop(stopId) {
         return this.getStopProperty(stopId, "label", stopId);
     },
 
@@ -262,7 +259,7 @@ Module.register("MMM-NJTransit", {
      *
      * return string - The color for the stop.
      */
-    colorForStop (stopId) {
+    colorForStop(stopId) {
         return this.getStopProperty(stopId, "color", "#fff");
     },
 
@@ -274,10 +271,11 @@ Module.register("MMM-NJTransit", {
      *
      * return string - The value of the property on the stop.
      */
-    getStopProperty (stopId, property, defaultValue) {
-        // console.log("getStopProperty()");
+    getStopProperty(stopId, property, defaultValue) {
+    // console.log("getStopProperty()");
         for (const s in this.config.stops) {
             const stop = this.config.stops[s];
+            // eslint-disable-next-line no-prototype-builtins
             if (stop.id === stopId && stop.hasOwnProperty(property)) {
                 return stop[property];
             }
@@ -285,16 +283,15 @@ Module.register("MMM-NJTransit", {
         return defaultValue;
     },
 
-
     /* Broadcasts the events to all other modules for reuse.
      * The all events available in one array, sorted on duetime.
      */
-    broadcastEvents () {
+    broadcastEvents() {
         const eventList = [];
         for (const stopId in this.stopData) {
             const stop = this.stopData[stopId];
             for (const e in stop) {
-                const event = cloneObject(stop[e]);
+                const event = stop[e];
                 event.symbol = this.symbolForStop(stopId);
                 event.color = this.colorForStop(stopId);
                 eventList.push(event);

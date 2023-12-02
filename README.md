@@ -1,24 +1,28 @@
-# MagicMirror Module: NJ Transit (MyBus Now)
+# MagicMirror² Module: NJ Transit (MyBus Now)
+
 `MMM-NJTransit` is a module for the [MagicMirror](https://github.com/MichMich/MagicMirror). It displays real-time arrival times for NJ Transit Bus. The data is sourced via the [NJ Transit (MyBus Now)](http://mybusnow.njtransit.com/bustime/home.jsp). There is no public API but you can easily to peek and see it in browser inspector.
 
 ![preview 1](./docs/preview1.png)
 ![preview 2](./docs/preview2.png)  ![preview 3](./docs/preview3.png)
 
-# Usage
 ## Installation
+
 ### 1. Clone this module into your MagicMirror's `modules` directory
+
 ```bash
 MagicMirror$ cd modules
 modules$ git clone https://github.com/dimitrystd/MMM-NJTransit.git
 ```
 
 ### 2. Install this module's dependencies
+
 ```bash
 modules$ cd MMM-NJTransit
 MMM-NJTransit$ npm install --production
 ```
 
 ### 3. Add this module to your MM config's `modules` array
+
 ```bash
 MMM-NJTransit$ cd ../..
 MagicMirror$ nano config/config.js
@@ -27,6 +31,7 @@ MagicMirror$ nano config/config.js
 Configure as described below and restart your MagicMirror.
 
 ## A typical configuration example
+
 ```javascript
 /* MagicMirror/config/config.js */
 {
@@ -61,6 +66,7 @@ Configure as described below and restart your MagicMirror.
 ```
 
 ## The full configuration explained
+
 ```javascript
 /* MagicMirror/config/config.js */
 {
@@ -124,7 +130,7 @@ Configure as described below and restart your MagicMirror.
                      * requires the module option 'colored' to be 'true'
                      * TYPE: string (CSS values, see https://www.w3schools.com/colors/colors_names.asp)
                      * REQUIRED: no
-                     * DEFAULT: magic mirror default text color */
+                     * DEFAULT: MagicMirror² default text color */
                     color: "pink",
 
                     /* maximum number of events to display for this stop.
@@ -241,12 +247,15 @@ Configure as described below and restart your MagicMirror.
 ```
 
 ## Finding your stop ID
+
 ![preview of stop number](./docs/stop-number.jpg)
 
 The ID on this sign refers to `21684`.
 
 ### Customisation
+
 You can customize this module in many ways.
+
 - combine several stops into a single MM module
 - group stops into separate MM modules by service, stop, direction, etc.
 - assign stops different colors and symbols via the `symbol` and `color` settings
@@ -257,5 +266,6 @@ The naming used to describe the different parts of an event in the module are as
 
 ![an image explaining the different parts of an event](https://github.com/galaktor/MMM-DublinRTPI/blob/master/docs/parts.png?raw=true)
 
-# Kudos
-The idea and code blueprint was taken from [`DublinRTPI`](https://github.com/galaktor/DublinRTPI) module.
+## Kudos
+
+The idea and code blueprint was taken from [`DublinRTPI`](https://github.com/galaktor/MMM-DublinRTPI) module.

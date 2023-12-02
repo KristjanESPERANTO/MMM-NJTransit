@@ -2,10 +2,9 @@
  * Copyright (C) 2018 Dmitry Studynskyi
  * License: GNU General Public License */
 
-const { expect } = require("chai");
 const sinon = require("sinon");
 const NjtFetcher = require("../classes/fetch-njtransit-data");
-const njtParser = require("../classes/parse-njtransit-data");
+let njtParser = require("../classes/parse-njtransit-data");
 
 describe("Test fetcher", () => {
     before(() => {
@@ -21,12 +20,12 @@ describe("Test fetcher", () => {
     });
 
     it("Non xml file", async () => {
-        // sinon.stub(njtParser, "parseNjtData")
-        //     .callsFake(() => "mock");
+    // sinon.stub(njtParser, "parseNjtData")
+    //     .callsFake(() => "mock");
         njtParser = sinon.stub();
         await this.fetcher.fetchStop();
     });
     it("Non xml file", () => {
-        // this.fetcher.exclude(null);
+    // this.fetcher.exclude(null);
     });
 });

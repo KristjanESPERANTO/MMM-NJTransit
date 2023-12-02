@@ -2,15 +2,18 @@
 * Copyright (C) 2018 Dmitry Studynskyi
 * License: GNU General Public License */
 
-/* eslint-disable guard-for-in,no-restricted-syntax,no-console */
-/* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
-const request = require("request-promise-native");
 const njtParser = require("./parse-njtransit-data");
 const { ErrorEventData } = require("../models/event-data");
 
 class NjtFetcher {
-    constructor(stopId, fetchInterval, routes, destinations,
-        maximumEntries, maximumNumberOfMinutes) {
+    constructor(
+        stopId,
+        fetchInterval,
+        routes,
+        destinations,
+        maximumEntries,
+        maximumNumberOfMinutes
+    ) {
         this.reloadTimer = null;
         this.events = [];
 
@@ -80,7 +83,7 @@ class NjtFetcher {
 
     /* schedule the timer for the next update */
     scheduleTimer() {
-        // console.log('Schedule update timer.');
+    // console.log('Schedule update timer.');
         clearTimeout(this.reloadTimer);
         this.reloadTimer = setTimeout(() => this.fetchStop(), this.fetchInterval);
     }
@@ -98,8 +101,8 @@ class NjtFetcher {
 
     /* Broadcast the existing events */
     broadcastEvents() {
-        // console.log('Broadcasting ' + events.length + ' events.');
-        // console.log(events);
+    // console.log('Broadcasting ' + events.length + ' events.');
+    // console.log(events);
         this.eventsReceivedCallback(this);
     }
 
@@ -122,50 +125,57 @@ class NjtFetcher {
     /* fetches the data from NJ Transit API */
     async fetchStop() {
         this.stopFetch();
+        const apiUrl = `https://mybusnow.njtransit.com/bustime/eta/getStopPredictionsETA.jsp?route=all&stop=${this.stopId}`;
 
-        const apiUrl = `http://mybusnow.njtransit.com/bustime/eta/getStopPredictionsETA.jsp?route=all&stop=${this.stopId}`;
-        await request(apiUrl)
-            .then(async (body) => {
-                const newEvents = [];
+        // New API looks like this:
+        // const apiUrl = `https://mybusnow.njtransit.com/bustime/api/v3/getpredictions?requestType=getpredictions&locale=en&stpid=19158&rt=1&dir=Jersey%20City&rtpidatafeed=bustime&top=20&key=Qskvu4Z5JDwGEVswqdAVkiA5B&format=json&xtime=1701477830772`;
 
-                const parsedEvents = await njtParser(body);
-                for (let i = 0; i < parsedEvents.length; i++) {
-                    parsedEvents[i].stopId = this.stopId;
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
 
-                    if (parsedEvents[i] instanceof ErrorEventData) {
-                        this.fetchFailedCallback(this, parsedEvents[i].errorMsg);
-                        this.scheduleTimer();
-                        return;
-                    }
+            const body = await response.text();
+            const newEvents = [];
+            const parsedEvents = await njtParser(body);
 
-                    if (this.exclude(parsedEvents[i])) {
-                        // console.log("excluded event:");
-                        // console.log(event);
-                    } else {
-                        /* eslint-disable fp/no-mutating-methods */
-                        newEvents.push(parsedEvents[i]);
-                        // console.log(e);
-                    }
+            // console.dir(parsedEvents);
+
+            for (let i = 0; i < parsedEvents.length; i++) {
+                parsedEvents[i].stopId = this.stopId;
+
+                if (parsedEvents[i] instanceof ErrorEventData) {
+                    this.fetchFailedCallback(this, parsedEvents[i].errorMsg);
+                    this.scheduleTimer();
+                    return;
                 }
 
-                /* eslint-disable fp/no-mutating-methods */
-                /* sort by duetime */
-                newEvents.sort((a, b) => a.duetime - b.duetime);
+                if (this.exclude(parsedEvents[i])) {
+                    // console.log("excluded event:");
+                    // console.log(parsedEvents[i]);
+                } else {
+                    newEvents.push(parsedEvents[i]);
+                }
+            }
 
-                /* limit number of events */
-                this.events = newEvents.slice(0, this.maximumEntries);
-                // console.log(newEvents);
+            /* sort by duetime */
+            newEvents.sort((a, b) => a.duetime - b.duetime);
 
-                /* notify */
-                this.broadcastEvents();
-                this.scheduleTimer();
-            }).catch((err) => {
-                /* handle HTTP errors */
-                console.error(`NJ Transit error querying NJ Transit API for stop id: ${this.stopId}`);
-                console.error(err);
-                this.fetchFailedCallback(this, err);
-                this.scheduleTimer();
-            });
+            /* limit number of events */
+            this.events = newEvents.slice(0, this.maximumEntries);
+            // console.log(newEvents);
+
+            /* notify */
+            this.broadcastEvents();
+            this.scheduleTimer();
+        } catch (err) {
+            /* handle HTTP errors */
+            console.error(`NJ Transit error querying NJ Transit API for stop id: ${this.stopId}`);
+            console.error(err);
+            this.fetchFailedCallback(this, err);
+            this.scheduleTimer();
+        }
     }
 }
 

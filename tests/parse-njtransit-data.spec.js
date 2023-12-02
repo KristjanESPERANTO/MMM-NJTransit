@@ -2,7 +2,6 @@
  * Copyright (C) 2018 Dmitry Studynskyi
  * License: GNU General Public License */
 
-/* eslint-disable no-unused-expressions */
 const { expect } = require("chai");
 const fs = require("fs");
 const parseXml = require("../classes/parse-njtransit-data");

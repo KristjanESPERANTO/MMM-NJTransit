@@ -3,7 +3,7 @@
  * License: GNU General Public License */
 
 const xml2js = require("xml2js");
-const util = require("util");
+
 const { ErrorEventData, BusEventData } = require("../models/event-data");
 
 function parseBusData(preObj) {
@@ -21,20 +21,13 @@ function parseBusData(preObj) {
     if (!preObj.rn) {
         return [new ErrorEventData("XML has no \"rn\" tag (route number)")];
     }
-    const destination = preObj.fd ? preObj.fd.replace(preObj.rn, "").trim() : "";
+    const destination = preObj.fd ? preObj.fd[0].replace(preObj.rn[0], "").trim() : "";
     return new BusEventData(preObj.rn, dueTime, isDue, preObj.scheduled === "true", destination);
 }
 
 const parseNjtData = async (xml) => {
-    const parser = new xml2js.Parser({
-        trim: true,
-        explicitArray: false,
-        ignoreAttrs: true,
-        normalizeTags: true,
-        valueProcessors: [name => name.toLowerCase()]
-    });
     try {
-        const xmlObj = await util.promisify(parser.parseString.bind(parser))(xml);
+        const xmlObj = await xml2js.parseStringPromise(xml);
         // console.info(xmlObj);
         if (!xmlObj.stop) {
             return [new ErrorEventData("XML has no \"stop\" tag")];
@@ -43,9 +36,9 @@ const parseNjtData = async (xml) => {
             return [new ErrorEventData(xmlObj.stop.noPredictionMessage)];
         }
         if (!xmlObj.stop.pre) {
+            // console.info(xmlObj.stop.pre);
             return [new ErrorEventData("XML has no \"pre\" tag")];
         }
-        /* eslint-disable fp/no-mutating-methods */
         const events = [];
         if (xmlObj.stop.pre instanceof Array) {
             for (let i = 0; i < xmlObj.stop.pre.length; i += 1) {
@@ -56,7 +49,7 @@ const parseNjtData = async (xml) => {
         }
         return events;
     } catch (e) {
-        return [new ErrorEventData(`Could not parse XML from string "${xml}"`)];
+        return [new ErrorEventData(`Could not parse XML from string "${xml}": ${e}`)];
     }
 };
 
